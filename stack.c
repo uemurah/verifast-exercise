@@ -11,17 +11,17 @@ struct stack {
 
 //@inductive ints = ints_nil | ints_cons(int, ints);
 
-/*@predicate nodes(struct stack_body *node, int count) =
-    node == 0 ?
-        count == 0
-    :
-        0 < count
-        &*& node->next |-> ?next &*& node->value |-> ?value
-        &*& malloc_block_stack_body(node) &*& nodes(next, count - 1);
+/*@predicate nodes(struct stack_body *node, ints values) =
+    switch (values) {
+        case ints_nil: return node == 0;
+        case ints_cons(value, values0):
+         return node->next |-> ?next &*& node->value |-> value
+        &*& malloc_block_stack_body(node) &*& nodes(next, values0);
+        };
 
-predicate stack(struct stack *stack, int count) =
-    stack->top |-> ?top &*& malloc_block_stack(stack) &*& 0 <= count &*&
-nodes(top, count);
+predicate stack(struct stack *stack, ints values) =
+    stack->top |-> ?top &*& malloc_block_stack(stack) &*&
+nodes(top, values);
 @*/
 
 struct stack* create_stack()

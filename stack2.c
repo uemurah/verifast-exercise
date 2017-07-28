@@ -249,6 +249,28 @@ int stack_get_count(struct stack *stack)
     return i;
 }
 
+//練習問題１３途中
+void stack_push_all(struct stack *stack, struct stack *other)
+    //@ requires stack(stack, ?count) &*& stack(other, ?count0);
+    //@ ensures stack(stack, count0 + count);
+{
+    //@ open stack(stack, count);
+    //@ open stack(other, count0);
+    struct stack_body *top0 = other->top;
+    //@ nodes_to_lseg_lemma(top0);
+    free(other);
+    struct stack_body *n = top0;
+    if (n != 0) { 
+        while (n->next != 0)
+        //@ invariant true;
+        {
+            n = n->next;
+        }
+        n->next = stack->top;
+        stack->top = top0;
+    }
+}
+
 int main()
     //@ requires true;
     //@ ensures true;

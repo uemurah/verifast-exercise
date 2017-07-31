@@ -251,6 +251,10 @@ int stack_get_count(struct stack *stack)
     return i;
 }
 
+<<<<<<< HEAD
+=======
+//練習問題１３途中
+>>>>>>> refs/remotes/origin/master
 void stack_push_all(struct stack *stack, struct stack *other)
     //@ requires stack(stack, ?count) &*& stack(other, ?count0);
     //@ ensures stack(stack, count0 + count);
@@ -258,6 +262,7 @@ void stack_push_all(struct stack *stack, struct stack *other)
     //@ open stack(stack, count);
     //@ open stack(other, count0);
     struct stack_body *top0 = other->top;
+<<<<<<< HEAD
     free(other);
     struct stack_body *n = top0;
     if (n != 0) {
@@ -273,6 +278,17 @@ void stack_push_all(struct stack *stack, struct stack *other)
         }
         //@ lseg_to_nodes_lemma(xx);
         //@ lseg_to_nodes_lemma(top0);
+=======
+    //@ nodes_to_lseg_lemma(top0);
+    free(other);
+    struct stack_body *n = top0;
+    if (n != 0) { 
+        while (n->next != 0)
+        //@ invariant true;
+        {
+            n = n->next;
+        }
+>>>>>>> refs/remotes/origin/master
         n->next = stack->top;
         stack->top = top0;
     }

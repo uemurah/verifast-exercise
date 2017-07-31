@@ -44,7 +44,7 @@ nodes(top, count);
     }
     close lseg(first, 0, count);
 }            
-@*/
+@*/ 
 
 //練習問題１２
 /*@lemma void lseg_to_nodes_lemma(struct stack_body *first)

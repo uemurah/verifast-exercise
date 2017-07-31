@@ -244,9 +244,38 @@ int stack_get_count(struct stack *stack)
         //@ lseg_add_lemma(top);
     }
     //@ open lseg(0, 0, _);
+    // close lseg(0, 0, 0);
+    // open lseg(0, 0, _);
     //@ lseg_to_nodes_lemma(top);
     //@ close stack(stack, count);
     return i;
+}
+
+void stack_push_all(struct stack *stack, struct stack *other)
+    //@ requires stack(stack, ?count) &*& stack(other, ?count0);
+    //@ ensures stack(stack, count0 + count);
+{
+    //@ open stack(stack, count);
+    //@ open stack(other, count0);
+    struct stack_body *top0 = other->top;
+    free(other);
+    struct stack_body *n = top0;
+    if (n != 0) {
+    	//@ nodes_to_lseg_lemma(n);
+    	//@ open lseg(n, 0, ?i);
+    	//@ close lseg(top0, top0, 0);
+        while (n->next != 0)
+        //@ invariant lseg(top0, n, ?k) &*& malloc_block_stack_body(n) &*& n->value |-> ?dummy &*& n->next |-> ?xx &*& lseg(xx, 0, ?j) &*& n != 0;
+        {
+            n = n->next;
+  	    //@ lseg_add_lemma(top0);
+  	    //@ open lseg(xx, 0, j);
+        }
+        //@ lseg_to_nodes_lemma(xx);
+        //@ lseg_to_nodes_lemma(top0);
+        n->next = stack->top;
+        stack->top = top0;
+    }
 }
 
 int main()

@@ -20,8 +20,7 @@ struct stack {
         &*& malloc_block_stack_body(node) &*& nodes(next, count - 1);
         
 predicate stack(struct stack *stack, int count) =
-    stack->top |-> ?top &*& malloc_block_stack(stack) &*& 0 <= count &*&
-nodes(top, count);
+    stack->top |-> ?top &*& malloc_block_stack(stack) &*& 0 <= count &*& nodes(top, count);
 @*/
 
 /*@predicate lseg(struct stack_body *first, struct stack_body *last, int count) =
@@ -77,6 +76,21 @@ lemma void lseg_add_lemma(struct stack_body *first)
     close lseg(first, next, count + 1);
 }
 @*/
+
+/*@ lemma void lseg_union_lemma(struct stack_body *first)
+    requires lseg(first, ?last, ?count) &*& lseg(last, 0, ?count0) &*& count0 >= 0;
+    ensures lseg(first, 0, count + count0);
+    {
+    open lseg(first, last, count);
+    if (first == last) {
+       //lseg_union_lemma(last);
+       } else {
+         lseg_union_lemma(first->next);
+         close lseg(first, 0, count + count0);
+       }
+    //close lseg(first, 0, count + count0); 
+    }
+@*/    
 
 struct stack* create_stack()
 //@ requires true;
@@ -251,48 +265,63 @@ int stack_get_count(struct stack *stack)
     return i;
 }
 
-<<<<<<< HEAD
-=======
-//練習問題１３途中
->>>>>>> refs/remotes/origin/master
+
+//練習問題１３
 void stack_push_all(struct stack *stack, struct stack *other)
     //@ requires stack(stack, ?count) &*& stack(other, ?count0);
     //@ ensures stack(stack, count0 + count);
 {
-    //@ open stack(stack, count);
     //@ open stack(other, count0);
+    //@ open stack(stack, count);
     struct stack_body *top0 = other->top;
-<<<<<<< HEAD
     free(other);
     struct stack_body *n = top0;
     if (n != 0) {
     	//@ nodes_to_lseg_lemma(n);
-    	//@ open lseg(n, 0, ?i);
+    	//@ open lseg(n, 0, count0);
     	//@ close lseg(top0, top0, 0);
         while (n->next != 0)
-        //@ invariant lseg(top0, n, ?k) &*& malloc_block_stack_body(n) &*& n->value |-> ?dummy &*& n->next |-> ?xx &*& lseg(xx, 0, ?j) &*& n != 0;
+        /*@ invariant lseg(top0, n, ?k) &*& 
+                      malloc_block_stack_body(n) &*& 
+                      n->value |-> ?dummy &*& n->next |-> ?xx &*& 
+                      lseg(xx, 0, count0 - (k + 1)) &*& n != 0;
+        @*/              
         {
             n = n->next;
   	    //@ lseg_add_lemma(top0);
-  	    //@ open lseg(xx, 0, j);
+  	    //@ open lseg(xx, 0, count0 - (k + 1));
         }
-        //@ lseg_to_nodes_lemma(xx);
-        //@ lseg_to_nodes_lemma(top0);
-=======
-    //@ nodes_to_lseg_lemma(top0);
-    free(other);
-    struct stack_body *n = top0;
-    if (n != 0) { 
-        while (n->next != 0)
-        //@ invariant true;
-        {
-            n = n->next;
-        }
->>>>>>> refs/remotes/origin/master
+        //@ open lseg(xx, 0, _);
         n->next = stack->top;
+        //@ nodes_to_lseg_lemma(stack->top);
         stack->top = top0;
+        //@ lseg_add_lemma(top0);
+        //@ lseg_union_lemma(top0);
+        //@ lseg_to_nodes_lemma(top0);
+    } else {
+	//@ open nodes(top0, count0);
     }
+    //@ close stack(stack, count + count0);
 }
+
+//練習問題１４工事中
+/*void stack_reverse(struct stack *s)
+     //@ requires
+     //@ ensures
+{
+     struct stack_body *n = s->top; 
+     struct stack_body *p = 0;
+     struct stack_body *q;
+     while (n->next != 0) 
+     {
+        q = n->next;
+        n->next = p;
+        p = n;
+        n = q;
+     }
+     n->next = p;
+     s->top = n;
+}*/
 
 int main()
     //@ requires true;

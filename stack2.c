@@ -323,6 +323,58 @@ void stack_push_all(struct stack *stack, struct stack *other)
      s->top = n;
 }*/
 
+//練習問題15
+typedef bool int_predicate(int x);
+    //@ requires true;
+    //@ ensures true;
+    
+struct stack_body *nodes_filter(struct stack_body *n, int_predicate *p)
+    //@ requires nodes(n, _) &*& is_int_predicate(p) == true;
+    //@ ensures nodes(result, _);
+{
+    if (n == 0) {
+        return 0;
+    } else {
+        //@ open nodes(n, _);
+        bool keep = p(n->value);
+        if (keep) {
+            struct stack_body *next = nodes_filter(n->next, p);
+            //@ open nodes(next, ?count);
+            //@ close nodes(next, count);
+            n->next = next;
+            //@ close nodes(n, count + 1);
+            return n;
+        } else {
+            struct stack_body *next = n->next;
+            free(n);
+            struct stack_body *result = nodes_filter(next, p);
+            return result;
+        }
+    }
+}
+
+void stack_filter(struct stack *stack, int_predicate *p)
+    //@ requires stack(stack, _) &*& is_int_predicate(p) == true;
+    //@ ensures stack(stack, _);
+{
+    //@ open stack(stack, _);
+    struct stack_body *head = nodes_filter(stack->head, p);
+    //@ assert nodes(head, ?count);
+    stack->head = head;
+    //@ open nodes(head, count);
+    //@ close nodes(head, count);
+    //@ close stack(stack, count);
+}
+
+bool neq_20(int x) //@ : int_predicate
+    //@ requires true;
+    //@ ensures true;
+{
+    return x != 20;
+}
+
+
+
 int main()
     //@ requires true;
     //@ ensures true;
@@ -330,8 +382,10 @@ int main()
     struct stack *s = create_stack();
     stack_push(s, 10);
     stack_push(s, 20);
-    stack_pop(s);
-    stack_pop(s);
+    stack_push(s, 30);
+    //stack_pop(s);
+    //stack_pop(s);
+    stack_filter(s, neq_20);
     stack_dispose(s);
     return 0;
 }

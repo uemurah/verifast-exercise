@@ -327,7 +327,8 @@ void stack_push_all(struct stack *stack, struct stack *other)
 typedef bool int_predicate(int x);
     //@ requires true;
     //@ ensures true;
-    
+
+/*    
 struct stack_body *nodes_filter(struct stack_body *n, int_predicate *p)
     //@ requires nodes(n, _) &*& is_int_predicate(p) == true;
     //@ ensures nodes(result, _);
@@ -358,11 +359,44 @@ void stack_filter(struct stack *stack, int_predicate *p)
     //@ ensures stack(stack, _);
 {
     //@ open stack(stack, _);
-    struct stack_body *head = nodes_filter(stack->head, p);
-    //@ assert nodes(head, ?count);
-    stack->head = head;
-    //@ open nodes(head, count);
-    //@ close nodes(head, count);
+    struct stack_body *top = nodes_filter(stack->top, p);
+    //@ assert nodes(top, ?count);
+    stack->top = top;
+    //@ open nodes(top, count);
+    //@ close nodes(top, count);
+    //@ close stack(stack, count);
+}
+*/
+
+//練習問題15の13章における別実装
+void nodes_filter(struct stack_body **n, int_predicate *p) 
+    //@ requires pointer(n, ?stack_body) &*& nodes(stack_body, _) &*& is_int_predicate(p) == true;
+    //@ ensures pointer(n, ?stack_body0) &*& nodes(stack_body0, _);
+{
+    if (*n != 0) {
+        bool keep = p((*n)->value);
+        if (keep) {
+            nodes_filter(&(*n)->next, p);
+        } else {
+            struct stack_body *next = (*n)->next;
+            free(*n);
+            *n = next;
+            nodes_filter(n, p);
+        }
+    }
+}
+
+void stack_filter(struct stack *stack, int_predicate *p)
+    //@ requires stack(stack, _) &*& is_int_predicate(p) == true;
+    //@ ensures stack(stack, _);
+{
+    //@ open stack(stack, _);
+    //@ open stack_top(stack, _);
+    nodes_filter(&stack->top, p);
+    //@ assert pointer(&stack->top, ?top) &*& nodes(top, ?count);
+    //@ close stack_top(stack, top);
+    //@ open nodes(top, count);
+    //@ close nodes(top, count);
     //@ close stack(stack, count);
 }
 

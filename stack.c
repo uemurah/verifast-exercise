@@ -1,4 +1,4 @@
- #include <stdlib.h>
+﻿ #include <stdlib.h>
 
 struct stack_body {
   int value;
@@ -11,14 +11,6 @@ struct stack {
 
 //@inductive ints = ints_nil | ints_cons(int, ints);
 
-/*@predicate nodestest(struct stack_body *node, ints values) =
-    switch (values) {
-        case ints_nil: return node == 0;
-        case ints_cons(value, values0):
-         return node->next |-> ?next &*& node->value |-> value
-        &*& malloc_block_stack_body(node) &*& nodes(next, values0);
-        };@*/
-
 /*@predicate nodes(struct stack_body *node, ints values) =
     node == 0 ?
     	values == ints_nil
@@ -27,11 +19,9 @@ struct stack {
     	&*& node->next |-> ?next &*& node->value |-> value
     	&*& malloc_block_stack_body(node) &*& nodes(next, values0);
     
-
-
 predicate stack(struct stack *stack, ints values) =
     stack->top |-> ?top &*& malloc_block_stack(stack) &*&
-nodes(top, values);
+    nodes(top, values);
 @*/
 
 /*@fixpoint int ints_head(ints values) {
@@ -47,13 +37,86 @@ fixpoint ints ints_tail(ints values) {
         case ints_cons(value, values0): return values0;
     }
 }@*/
+
 /*@
 fixpoint int ints_sum(ints values){
     switch (values){
     case ints_nil: return 0;
     case ints_cons(value, values0): return value + ints_sum(values0);
     }
-}@*/    
+}@*/ 
+
+/*@predicate lseg(struct stack_body *first, struct stack_body *last, int count) =
+    first == last ?
+        count == 0
+    :
+        0 < count &*& first != 0 &*&
+        first->value |-> _ &*& first->next |-> ?next &*& 
+        malloc_block_stack_body(first) &*&
+        lseg(next, last, count - 1);      
+@*/
+
+/*@
+fixpoint ints ints_append(ints values, ints values1){
+   switch (values){
+       case ints_nil: return values1;
+       case ints_cons(value, values0): return ints_cons(value, ints_append(values0, values1));
+   }
+}
+@*/
+
+//reverse未完成
+/*@
+fixpoint ints ints_reverse_aux(ints values, ints rev){
+   switch (values){
+       case ints_nil: return rev;
+       case ints_cons(value, values0): return ints_reverse_aux(values0, ints_cons(value, rev));
+   }
+}
+
+/*fixpoint ints ints_reverse(ints values){
+   return ints_reverse_aux(values, ints_nil);
+} */   
+
+fixpoint ints ints_reverse(ints values){
+    switch (values){
+        case ints_nil: return ints_nil;
+        case ints_cons(value, values0): return ints_append(ints_reverse(values0), ints_cons(value, ints_nil));
+    }         
+}
+@*/ 
+
+
+
+/*@
+lemma void ints_append_nil(ints values)
+    requires true;
+    ensures ints_append(values, ints_nil) == values;
+{
+    switch (values){
+        case ints_nil:
+        case ints_cons(value, values0):
+            ints_append_nil(values0);
+    }
+}
+
+//lemma void ints_append_assoc(int value, ints values1tail, ints rev)
+//    requires true;
+//    ensures ints_append(ints_reverse(ints_cons(value, values1tail)), rev) == ints_append(ints_revese(values1tail), ints_cons(value, rev));
+//{
+//}
+
+lemma void ints_append_assoc(ints values1, ints values2, ints values3)
+    requires true;
+    ensures ints_append(ints_append(values1, values2), values3) == ints_append(values1, ints_append(values2, values3));
+{
+   switch (values1){
+       case ints_nil:
+       case ints_cons(value, values0): ints_append_assoc(values0, values2, values3);
+   }
+}           
+                     
+@*/              
 
 struct stack* create_stack()
 //@ requires true;
@@ -205,6 +268,37 @@ int stack_get_sum(struct stack *s)
   }
   // close stack(s, count - n);
 }*/ 
+
+//練習問題１４工事中
+void stack_reverse(struct stack *s)
+     //@ requires stack(s, ?values);
+     //@ ensures stack(s, ints_reverse(values));
+{
+     //@ open stack(s, values);
+     struct stack_body *n = s->top; 
+     struct stack_body *p = 0;
+     //@ close nodes(p, ints_nil);
+    //@ ints_append_nil(ints_reverse(values));
+     while (n != 0)
+     /*@
+        invariant
+            nodes(p, ?rev) &*& nodes(n, ?values1) &*&
+            ints_reverse(values) == ints_append(ints_reverse(values1), rev);
+        @*/ 
+     {
+        //@ open nodes(n, values1);
+        struct stack_body *tmp = n->next;
+        //@ assert nodes(tmp, ?values1tail) &*& n->value |-> ?value;
+        n->next = p;
+        p = n;
+        n = tmp;
+        //@ close nodes(p, ints_cons(value, rev));
+        //@ ints_append_assoc(ints_reverse(values1tail), ints_cons(value, ints_nil), rev);
+     }
+     //@ open nodes(n, _);
+     s->top = p;
+     //@ close stack(s, ints_reverse(values));
+}
 
 int main()
     //@ requires true;

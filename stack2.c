@@ -328,8 +328,8 @@ typedef bool int_predicate(int x);
     //@ requires true;
     //@ ensures true;
 
-/*    
-struct stack_body *nodes_filter(struct stack_body *n, int_predicate *p)
+    
+struct stack_body *nodes_filter2(struct stack_body *n, int_predicate *p)
     //@ requires nodes(n, _) &*& is_int_predicate(p) == true;
     //@ ensures nodes(result, _);
 {
@@ -339,44 +339,50 @@ struct stack_body *nodes_filter(struct stack_body *n, int_predicate *p)
         //@ open nodes(n, _);
         bool keep = p(n->value);
         if (keep) {
-            struct stack_body *next = nodes_filter(n->next, p);
+            struct stack_body *next = nodes_filter2(n->next, p);
             //@ open nodes(next, ?count);
             //@ close nodes(next, count);
+            ///@ assert nodes(next, ?count);
             n->next = next;
             //@ close nodes(n, count + 1);
             return n;
         } else {
             struct stack_body *next = n->next;
             free(n);
-            struct stack_body *result = nodes_filter(next, p);
+            struct stack_body *result = nodes_filter2(next, p);
             return result;
         }
     }
 }
 
-void stack_filter(struct stack *stack, int_predicate *p)
+void stack_filter2(struct stack *stack, int_predicate *p)
     //@ requires stack(stack, _) &*& is_int_predicate(p) == true;
     //@ ensures stack(stack, _);
 {
     //@ open stack(stack, _);
-    struct stack_body *top = nodes_filter(stack->top, p);
+    struct stack_body *top = nodes_filter2(stack->top, p);
     //@ assert nodes(top, ?count);
     stack->top = top;
     //@ open nodes(top, count);
     //@ close nodes(top, count);
     //@ close stack(stack, count);
 }
-*/
+
 
 //練習問題15の13章における別実装
+
 void nodes_filter(struct stack_body **n, int_predicate *p) 
     //@ requires pointer(n, ?stack_body) &*& nodes(stack_body, _) &*& is_int_predicate(p) == true;
     //@ ensures pointer(n, ?stack_body0) &*& nodes(stack_body0, _);
 {
     if (*n != 0) {
+    //@ open nodes(*n, ?count);
+    // open nodes(stack_body, _);
         bool keep = p((*n)->value);
         if (keep) {
             nodes_filter(&(*n)->next, p);
+            ///@ close nodes(stack_body, count);
+            //@ close nodes(*n, count+1);
         } else {
             struct stack_body *next = (*n)->next;
             free(*n);

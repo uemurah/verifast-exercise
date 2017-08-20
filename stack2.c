@@ -370,18 +370,20 @@ void stack_filter2(struct stack *stack, int_predicate *p)
 
 
 //練習問題15の13章における別実装
-
 void nodes_filter(struct stack_body **n, int_predicate *p) 
     //@ requires pointer(n, ?stack_body) &*& nodes(stack_body, _) &*& is_int_predicate(p) == true;
     //@ ensures pointer(n, ?stack_body0) &*& nodes(stack_body0, _);
 {
     if (*n != 0) {
-    //@ open nodes(*n, ?count);
-    // open nodes(stack_body, _);
+    //@ open nodes(stack_body, _);
         bool keep = p((*n)->value);
         if (keep) {
+            //@ open stack_body_next(stack_body, _);
             nodes_filter(&(*n)->next, p);
-            ///@ close nodes(stack_body, count);
+            //@ assert pointer(&((struct stack_body *)stack_body)->next, ?next) &*& nodes(next, ?count);
+            //@ close stack_body_next(stack_body, next);
+            //@ open nodes(next, count);
+            //@ close nodes(next, count);
             //@ close nodes(*n, count+1);
         } else {
             struct stack_body *next = (*n)->next;
@@ -391,6 +393,7 @@ void nodes_filter(struct stack_body **n, int_predicate *p)
         }
     }
 }
+
 
 void stack_filter(struct stack *stack, int_predicate *p)
     //@ requires stack(stack, _) &*& is_int_predicate(p) == true;
